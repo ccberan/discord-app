@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 127.14 96.36'%3E%3Cpath fill='%235865F2' d='M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z'/%3E%3C/svg%3E">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blurple:#5865F2;--blurple-hover:#4752C4;
+  --bg-input:#1E1F22;--text-normal:#DBDEE1;
+  --text-muted:#80848E;--text-link:#00A8FC;
+  --error:#FA777C;--label:#B5BAC1;--card-bg:#2b2d31;
+  --green:#23A55A;
+}
+html,body{height:100%;font-family:'gg sans','Noto Sans',Whitney,'Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden;}
+
+/* ══ BACKGROUND ══ */
+.page-bg{
+  width:100vw;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  background:linear-gradient(105deg,#0e0b2e 0%,#1a1060 18%,#1e1272 28%,#2a1a8a 38%,#2d2299 45%,#3b35bb 55%,#4a52d8 65%,#3d7ee8 78%,#2b8ff5 88%,#1e9cf8 100%);
+}
+.page-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 70% at 100% 0%,rgba(30,150,255,.55) 0%,transparent 60%),radial-gradient(ellipse 40% 50% at 100% 50%,rgba(60,130,240,.35) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at 0% 50%,rgba(10,5,50,.4) 0%,transparent 55%);pointer-events:none;z-index:0;}
+.page-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 15% 100%,rgba(5,3,25,.55) 0%,transparent 55%),radial-gradient(ellipse 40% 40% at 0% 0%,rgba(5,3,25,.3) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+.stars-canvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+.site-logo{position:fixed;top:24px;left:28px;display:flex;align-items:center;gap:10px;z-index:10;text-decoration:none;}
+.site-logo span{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+
+.orb{position:fixed;width:320px;height:320px;right:-80px;top:50%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle at 36% 34%,#c0aee8 0%,#8a78c0 18%,#5a4a98 38%,#342868 60%,#1c1440 82%,#0d0a22 100%);box-shadow:inset -30px -25px 70px rgba(0,0,0,.65),inset 12px 12px 45px rgba(190,170,240,.12),0 0 90px rgba(90,70,200,.3),0 0 200px rgba(60,40,180,.18);z-index:1;animation:orbFloat 9s ease-in-out infinite;}
+.orb::before{content:'';position:absolute;width:36%;height:26%;top:14%;left:17%;background:radial-gradient(ellipse,rgba(240,225,255,.2) 0%,transparent 70%);border-radius:50%;transform:rotate(-28deg);}
+@keyframes orbFloat{0%,100%{transform:translateY(-50%) translateY(0)}50%{transform:translateY(-50%) translateY(-16px)}}
+
+/* ══ VIEWS ══ */
+.view{display:none;position:relative;z-index:5;}
+.view.active{display:flex;}
+
+/* ══ CARD ══ */
+.auth-card{background:var(--card-bg);border-radius:5px;box-shadow:rgba(0,0,0,.55) 0 2px 14px 0;display:flex;width:784px;min-height:476px;animation:cardIn .2s ease;}
+@keyframes cardIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+
+/* ══ QR SIDE ══ */
+.qr-side{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;width:292px;flex-shrink:0;text-align:center;border-right:1px solid rgba(255,255,255,.06);}
+.discord-logo-qr{margin-bottom:24px;}
+.qr-box{width:176px;height:176px;background:#fff;border-radius:4px;position:relative;flex-shrink:0;margin-bottom:20px;overflow:hidden;}
+#qrCanvas{display:block;}
+.qr-center-logo{position:absolute;width:40px;height:40px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+
+
+
+
+
+.qr-side h2{font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3;}
+.qr-side p{font-size:14px;color:var(--text-normal);line-height:1.5;}
+.qr-side p strong{font-weight:600;color:#fff;}
+
+/* ══ FORM SIDE ══ */
+.form-side{flex:1;padding:32px 40px 28px;display:flex;flex-direction:column;justify-content:center;}
+.form-header{text-align:center;margin-bottom:20px;}
+.form-header h1{font-size:24px;font-weight:700;color:#fff;margin-bottom:6px;}
+.form-header p{font-size:16px;color:var(--text-muted);}
+
+/* ══ FIELDS ══ */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--label);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase;}
+.field label .req{color:var(--error);}
+.field input,.field select{width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid rgba(0,0,0,.3);border-radius:3px;color:var(--text-normal);font-size:16px;font-family:inherit;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--blurple);}
+.field input.has-error,.field select.has-error{border-color:var(--error);}
+.field input::placeholder{color:rgba(255,255,255,.15);}
+.sel-wrap{position:relative;}
+.sel-wrap::after{content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--text-muted);pointer-events:none;}
+.sel-wrap select{padding-right:28px;cursor:pointer;}
+.field select option{background:#2B2D31;color:var(--text-normal);}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:42px;}
+.eye-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;line-height:0;padding:4px;user-select:none;}
+.eye-btn:hover{color:var(--text-normal);}
+.field-error{font-size:12px;color:var(--error);margin-top:4px;font-style:italic;min-height:16px;}
+.api-error{font-size:13px;color:var(--error);background:rgba(250,119,124,.1);border:1px solid rgba(250,119,124,.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;display:none;}
+.api-error.show{display:block;}
+.forgot{display:inline-block;font-size:12px;color:var(--text-link);margin-top:6px;cursor:pointer;text-decoration:none;}
+.forgot:hover{text-decoration:underline;}
+.dob-row{display:grid;grid-template-columns:2fr 1fr 1.4fr;gap:8px;}
+.check-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.check-row input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--blurple);cursor:pointer;}
+.check-row label{font-size:14px;color:var(--text-muted);cursor:pointer;line-height:1.5;}
+.btn-submit{width:100%;padding:14px;margin-top:16px;background:var(--blurple);color:white;font-size:16px;font-weight:500;font-family:inherit;border:none;border-radius:3px;cursor:pointer;position:relative;transition:background .15s;line-height:1.3;}
+.btn-submit:hover{background:var(--blurple-hover);}
+.btn-submit:disabled{opacity:.7;cursor:not-allowed;}
+.btn-submit.loading{color:transparent;}
+.btn-submit.loading::after{content:'';position:absolute;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;top:50%;left:50%;margin:-10px 0 0 -10px;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.subtext{font-size:14px;color:var(--text-muted);margin-top:8px;}
+.subtext a{color:var(--text-link);cursor:pointer;text-decoration:none;}
+.subtext a:hover{text-decoration:underline;}
+.tos{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6;}
+.tos a{color:var(--text-link);text-decoration:none;cursor:pointer;}
+.tos a:hover{text-decoration:underline;}
+.auth-card.reg-mode{width:480px;min-height:auto;}
+.auth-card.reg-mode .qr-side{display:none;}
+
+/* ══════════════════════════════════════
+   SUCCESS SCREENS
+══════════════════════════════════════ */
+#successView{display:none;position:relative;z-index:5;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+#successView.active{display:flex;}
+
+.success-card{background:var(--card-bg);border-radius:8px;padding:48px 52px;width:460px;box-shadow:rgba(0,0,0,.55) 0 4px 24px;animation:successPop .35s cubic-bezier(.175,.885,.32,1.275);display:flex;flex-direction:column;align-items:center;}
+@keyframes successPop{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+
+.success-ring{width:88px;height:88px;border-radius:50%;background:rgba(35,165,90,.12);border:3px solid rgba(35,165,90,.3);display:flex;align-items:center;justify-content:center;margin-bottom:24px;animation:ringPulse 2s ease-in-out infinite;}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(35,165,90,.3)}50%{box-shadow:0 0 0 14px rgba(35,165,90,0)}}
+
+.success-check{color:var(--green);animation:checkDraw .4s ease .1s both;}
+@keyframes checkDraw{from{opacity:0;transform:scale(.4) rotate(-20deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+
+.success-card::before{content:'✦ ✧ ✦';font-size:20px;color:rgba(88,101,242,.5);letter-spacing:14px;margin-bottom:4px;display:block;animation:floatDots 3s ease-in-out infinite alternate;}
+@keyframes floatDots{from{transform:translateY(0)}to{transform:translateY(-6px)}}
+
+.success-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:10px;line-height:1.3;}
+.success-subtitle{font-size:15px;color:var(--text-muted);line-height:1.6;margin-bottom:28px;}
+.success-subtitle strong{color:var(--text-normal);}
+.success-username{font-size:18px;font-weight:700;color:var(--blurple);background:rgba(88,101,242,.1);border:1px solid rgba(88,101,242,.25);border-radius:6px;padding:8px 20px;margin-bottom:28px;letter-spacing:.02em;}
+.success-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:20px;}
+.success-badge.login{background:rgba(0,168,252,.12);color:#00A8FC;border:1px solid rgba(0,168,252,.3);}
+.success-badge.register{background:rgba(35,165,90,.12);color:#23A55A;border:1px solid rgba(35,165,90,.3);}
+.btn-back-to-login{width:100%;padding:13px;background:var(--blurple);color:#fff;font-size:15px;font-weight:600;font-family:inherit;border:none;border-radius:3px;cursor:pointer;transition:background .15s;}
+.btn-back-to-login:hover{background:var(--blurple-hover);}
+
+
+
+/* ══ OVERLAYS ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;}
+.overlay.open{display:flex;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.forgot-modal{background:#313338;border-radius:8px;padding:32px;width:440px;box-shadow:rgba(0,0,0,.55) 0 8px 32px;animation:slideUp .2s ease;position:relative;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.forgot-modal h2{font-size:24px;font-weight:700;color:#fff;margin-bottom:8px;}
+.forgot-modal .sub{font-size:16px;color:var(--text-muted);margin-bottom:24px;line-height:1.5;}
+.modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+.modal-close:hover{color:#fff;background:rgba(255,255,255,.06);}
+.btn-row{display:flex;gap:8px;margin-top:4px;}
+.btn-back{flex:1;padding:11px;background:transparent;border:none;border-radius:3px;color:var(--text-link);font-size:16px;font-family:inherit;cursor:pointer;}
+.btn-back:hover{text-decoration:underline;}
+.btn-send{flex:2;padding:11px;background:var(--blurple);border:none;border-radius:3px;color:#fff;font-size:16px;font-weight:500;font-family:inherit;cursor:pointer;position:relative;transition:background .15s;}
+.btn-send:hover{background:var(--blurple-hover);}
+.btn-send.loading{color:transparent;}
+.btn-send.loading::after{content:'';position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;top:50%;left:50%;margin:-9px 0 0 -9px;animation:spin .6s linear infinite;}
+.forgot-success{text-align:center;display:none;}
+.forgot-success.show{display:block;}
+.forgot-form.hide{display:none;}
+.success-icon{width:64px;height:64px;background:rgba(35,165,90,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.terms-modal{background:#2B2D31;border-radius:8px;width:520px;max-height:80vh;box-shadow:rgba(0,0,0,.55) 0 8px 32px;animation:slideUp .2s ease;display:flex;flex-direction:column;overflow:hidden;}
+.terms-modal-header{padding:20px 24px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;}
+.terms-modal-header h2{font-size:20px;font-weight:700;color:#fff;}
+.terms-modal-body{padding:20px 24px;overflow-y:auto;flex:1;color:var(--text-normal);font-size:14px;line-height:1.7;}
+.terms-modal-body h3{color:#fff;font-size:15px;margin:16px 0 6px;font-weight:600;}
+.terms-modal-body h3:first-child{margin-top:0;}
+.terms-modal-body p{margin-bottom:10px;color:var(--text-muted);}
+.terms-modal-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.06);}
+.terms-modal-footer button{padding:10px 24px;background:var(--blurple);color:#fff;border:none;border-radius:3px;font-size:15px;font-weight:500;font-family:inherit;cursor:pointer;transition:background .15s;}
+.terms-modal-footer button:hover{background:var(--blurple-hover);}
+
+@media(max-width:820px){
+  .auth-card{width:calc(100vw - 32px);flex-direction:column;}
+  .qr-side{width:100%;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);}
+  .auth-card.reg-mode,.success-card{width:calc(100vw - 32px);}
+  .success-card{padding:36px 28px;}
+  .forgot-modal,.terms-modal{width:calc(100vw - 32px);padding:24px;}
+  .orb{right:-140px;width:240px;height:240px;}
+}
+</style>
+</head>
+<body>
+
+<canvas class="stars-canvas" id="starsCanvas"></canvas>
+<a class="site-logo" href="#">
+  <svg width="32" height="24" viewBox="0 0 127.14 96.36" fill="none"><path fill="white" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
+  <span>Discord</span>
+</a>
+<div class="orb"></div>
+
+<div class="page-bg">
+
+  <!-- ══ LOGIN ══ -->
+  <div class="view active" id="loginView">
+    <div class="auth-card">
+      <div class="qr-side">
+        <div class="discord-logo-qr">
+          <svg width="68" height="52" viewBox="0 0 127.14 96.36" fill="none"><path fill="white" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
+        </div>
+        <div class="qr-box" id="qrBox">
+          <canvas id="qrCanvas"></canvas>
+          <div class="qr-center-logo">
+            <svg width="24" height="18" viewBox="0 0 127.14 96.36" fill="none"><path fill="#5865F2" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
+          </div>
+
+          
+        </div>
+        <h2>Log in with QR Code</h2>
+        <p>Scan this with the <strong>Discord mobile app</strong> to log in instantly.</p>
+      </div>
+      <div class="form-side">
+        <div class="form-header">
+          <h1>Welcome back!</h1>
+          <p>We're so excited to see you again!</p>
+        </div>
+        <div class="api-error" id="loginApiErr"></div>
+        <div class="field">
+          <label>Email or Phone Number <span class="req">*</span></label>
+          <input type="text" id="loginEmail" autocomplete="email">
+          <div class="field-error" id="loginEmailErr"></div>
+        </div>
+        <div class="field">
+          <label>Password <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPw" autocomplete="current-password">
+            <span class="eye-btn" onclick="togglePw('loginPw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          </div>
+          <a class="forgot" onclick="openForgot()">Forgot your password?</a>
+          <div class="field-error" id="loginPwErr"></div>
+        </div>
+        <button class="btn-submit" id="loginBtn" onclick="doLogin()">Log In</button>
+        <div class="subtext" style="margin-top:8px;">Need an account? <a onclick="showRegister()">Register</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REGISTER ══ -->
+  <div class="view" id="registerView">
+    <div class="auth-card reg-mode">
+      <div class="form-side" style="padding:28px 32px 24px;">
+        <div class="form-header"><h1>Create an account</h1></div>
+        <div class="api-error" id="regApiErr"></div>
+        <div class="field">
+          <label>Email <span class="req">*</span></label>
+          <input type="email" id="regEmail" autocomplete="email">
+          <div class="field-error" id="regEmailErr"></div>
+        </div>
+        <div class="field">
+          <label>Display Name</label>
+          <input type="text" id="regDisplay">
+        </div>
+        <div class="field">
+          <label>Username <span class="req">*</span></label>
+          <input type="text" id="regUser">
+          <div class="field-error" id="regUserErr"></div>
+        </div>
+        <div class="field">
+          <label>Password <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="regPw">
+            <span class="eye-btn" onclick="togglePw('regPw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          </div>
+          <div class="field-error" id="regPwErr"></div>
+        </div>
+        <div class="field">
+          <label>Date of Birth <span class="req">*</span></label>
+          <div class="dob-row" id="dobRow"></div>
+          <div class="field-error" id="dobErr"></div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="emailOpt">
+          <label for="emailOpt">(Optional) It's okay to send me emails with Discord updates, tips, and special offers. You can opt out at any time.</label>
+        </div>
+        <div class="tos">
+          By clicking "Create Account," you agree to Discord's
+          <a onclick="openTerms('tos')">Terms of Service</a> and have read the
+          <a onclick="openTerms('privacy')">Privacy Policy</a>.
+        </div>
+        <button class="btn-submit" id="regBtn" onclick="doRegister()">Create Account</button>
+        <div class="subtext" style="margin-top:8px;">Already have an account? <a onclick="showLogin()">Log In</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SUCCESS ══ -->
+  <div class="view" id="successView">
+    <div class="success-card">
+      <div class="success-badge" id="successBadge">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+        <span id="successBadgeText">LOGGED IN</span>
+      </div>
+      <div class="success-ring">
+        <svg class="success-check" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="success-title" id="successTitle">Welcome back!</div>
+      <div class="success-username" id="successUsername">username</div>
+      <div class="success-subtitle" id="successSubtitle">You have successfully logged in.<br><strong>Happy chatting! 🎮</strong></div>
+      <button class="btn-back-to-login" onclick="clearRegisterForm();clearLoginForm();showLogin()">Back to Login</button>
+      
+    </div>
+  </div>
+
+</div>
+
+<!-- FORGOT / CHANGE PASSWORD OVERLAY -->
+<div class="overlay" id="forgotOverlay" onclick="overlayClick(event,'forgotOverlay')">
+  <div class="forgot-modal">
+    <button class="modal-close" onclick="closeForgot()">&#x2715;</button>
+
+    <!-- STEP 1: Enter Email -->
+    <div id="forgotStep1">
+      <h2>Change your password</h2>
+      <p class="sub">Enter your email to find your account.</p>
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" id="forgotEmail" placeholder="Enter your email address">
+        <div class="field-error" id="forgotEmailErr"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="closeForgot()">Cancel</button>
+        <button class="btn-send" id="forgotStep1Btn" onclick="doForgotStep1()">Continue</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Enter current + new password -->
+    <div id="forgotStep2" style="display:none;">
+      <h2>Change your password</h2>
+      <p class="sub">Enter your current password then choose a new one.</p>
+      <div class="field-error" style="margin-bottom:10px;font-size:13px;font-style:normal;background:rgba(250,119,124,.1);border:1px solid rgba(250,119,124,.3);border-radius:4px;padding:8px 12px;display:none;" id="forgotStep2Err"></div>
+      <div class="field">
+        <label>Current Password <span class="req">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="currentPw" placeholder="Your current password">
+          <span class="eye-btn" onclick="togglePw('currentPw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        </div>
+        <div class="field-error" id="currentPwErr"></div>
+      </div>
+      <div class="field">
+        <label>New Password <span class="req">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="newPw" placeholder="At least 8 characters">
+          <span class="eye-btn" onclick="togglePw('newPw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        </div>
+        <div class="field-error" id="newPwErr"></div>
+      </div>
+      <div class="field">
+        <label>Confirm New Password <span class="req">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="confirmNewPw" placeholder="Repeat new password">
+          <span class="eye-btn" onclick="togglePw('confirmNewPw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        </div>
+        <div class="field-error" id="confirmNewPwErr"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-back" onclick="showForgotStep1()">Back</button>
+        <button class="btn-send" id="forgotStep2Btn" onclick="doForgotStep2()">Change Password</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Success message -->
+    <div id="forgotStep3" style="display:none;text-align:center;">
+      <div class="success-icon" style="margin:0 auto 20px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#23A55A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="margin-bottom:10px;">Password Changed!</h2>
+      <p class="sub" style="margin-bottom:24px;">Your password has been successfully changed. You can now log in with your new password.</p>
+      <button class="btn-send" style="width:100%;" onclick="closeForgot()">Back to Login</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- TERMS OVERLAY -->
+<div class="overlay" id="termsOverlay" onclick="overlayClick(event,'termsOverlay')">
+  <div class="terms-modal">
+    <div class="terms-modal-header">
+      <h2 id="termsTitle">Terms of Service</h2>
+      <button class="modal-close" style="position:static;" onclick="closeTerms()">&#x2715;</button>
+    </div>
+    <div class="terms-modal-body" id="termsBody"></div>
+    <div class="terms-modal-footer"><button onclick="closeTerms()">I Understand</button></div>
+  </div>
+</div>
+
+<script>
+// ══ STARS ══
+(function(){
+  const cv=document.getElementById('starsCanvas');let W,H,st=[],di=[];
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+  function r(a,b){return a+Math.random()*(b-a);}
+  function init(){st=[];di=[];
+    for(let i=0;i<90;i++)st.push({x:Math.random()*W,y:Math.random()*H,r:r(.6,2.2),a:r(.3,1),s:r(.004,.018),o:Math.random()*Math.PI*2,c:Math.random()>.7?'rgba(180,160,255,':'rgba(255,255,255,'});
+    for(let i=0;i<18;i++)di.push({x:Math.random()*W,y:Math.random()*H,sz:r(3,8),a:r(.4,.9),c:Math.random()>.5?[180,140,255]:[100,160,255],s:r(.005,.02),o:Math.random()*Math.PI*2});
+  }
+  function dD(ctx,x,y,sz,a,c){ctx.save();ctx.globalAlpha=a;ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.beginPath();ctx.moveTo(x,y-sz);ctx.lineTo(x+sz*.45,y);ctx.lineTo(x,y+sz);ctx.lineTo(x-sz*.45,y);ctx.closePath();ctx.fill();ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${a*.5})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(x,y-sz*1.8);ctx.lineTo(x,y+sz*1.8);ctx.moveTo(x-sz*1.8,y);ctx.lineTo(x+sz*1.8,y);ctx.stroke();ctx.restore();}
+  let t=0;
+  function frame(){const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);t+=.016;
+    for(const s of st){const a=s.a*(.5+.5*Math.sin(t*s.s*60+s.o));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=s.c+a+')';ctx.fill();}
+    for(const d of di){const a=d.a*(.4+.6*Math.sin(t*d.s*60+d.o));dD(ctx,d.x,d.y,d.sz,a,d.c);}
+    requestAnimationFrame(frame);}
+  window.addEventListener('resize',()=>{resize();init();});resize();init();frame();
+})();
+
+// ══ QR (original static) ══
+(function(){
+  const M=[[1,1,1,1,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,0,1,0,1,1,0,1,0,1,1,0,1,0,0,0,0,0,1],[1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,1,0,0,1,0,0,1,0,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,0,1,1,0,1,1,0,1,0,1,0,1,1,1,0,1],[1,0,0,0,0,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0],[0,1,1,0,1,0,1,1,1,0,0,1,1,0,0,1,0,1,0,1,1,1,0,0,1],[1,1,0,1,0,0,0,0,1,0,1,1,0,1,1,0,0,0,1,0,0,1,0,1,0],[0,0,1,1,0,1,1,0,0,1,1,0,1,0,1,1,1,0,0,1,1,0,1,1,0],[1,0,1,0,1,1,0,1,1,0,0,1,0,1,0,0,1,1,1,0,0,1,0,0,1],[1,1,0,1,1,0,1,1,0,1,0,0,1,0,0,1,0,0,1,1,0,1,1,0,0],[0,1,1,0,0,1,0,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,1,1,0],[1,0,0,1,0,0,1,0,0,0,1,1,0,1,1,0,1,1,0,0,0,1,0,1,1],[0,1,0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0,1,0,1,1,1,0,1],[1,0,1,1,0,1,1,0,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0],[0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1],[1,1,1,1,1,1,1,0,1,0,0,0,1,1,0,1,0,0,1,0,0,1,1,0,0],[1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,1,1,0,1,0,1,0,1,1],[1,0,1,1,1,0,1,0,1,1,0,0,1,0,0,1,1,0,1,0,1,0,1,0,0],[1,0,1,1,1,0,1,0,0,0,1,0,0,1,0,0,0,1,0,1,0,1,1,0,1],[1,0,1,1,1,0,1,0,1,1,0,1,1,0,0,1,0,0,1,0,0,0,1,1,0],[1,0,0,0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,1,1,0,0,1,1],[1,1,1,1,1,1,1,0,1,0,0,1,0,0,0,1,0,1,1,0,0,1,0,0,1]];
+  const SZ=25,FD=[[0,0],[0,SZ-7],[SZ-7,0]];
+  function iF(r,c){for(const[fr,fc]of FD)if(r>=fr&&r<fr+7&&c>=fc&&c<fc+7)return true;return false;}
+  function iA(r,c){return r>=16&&r<=20&&c>=16&&c<=20;}
+  function rr(ctx,x,y,w,h,rd){rd=Math.min(rd,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rd,y);ctx.arcTo(x+w,y,x+w,y+h,rd);ctx.arcTo(x+w,y+h,x,y+h,rd);ctx.arcTo(x,y+h,x,y,rd);ctx.arcTo(x,y,x+w,y,rd);ctx.closePath();}
+  function dF(ctx,px,py,cl){const S=cl*7,p=.4;ctx.fillStyle='#000';rr(ctx,px+p,py+p,S-p*2,S-p*2,cl*1.6);ctx.fill();ctx.fillStyle='#fff';rr(ctx,px+cl+p,py+cl+p,S-cl*2-p*2,S-cl*2-p*2,cl*.8);ctx.fill();ctx.fillStyle='#000';rr(ctx,px+cl*2+p,py+cl*2+p,cl*3-p*2,cl*3-p*2,cl);ctx.fill();}
+  function dA(ctx,px,py,cl){const p=.4;ctx.fillStyle='#000';rr(ctx,px+p,py+p,cl*5-p*2,cl*5-p*2,cl*.9);ctx.fill();ctx.fillStyle='#fff';rr(ctx,px+cl+p,py+cl+p,cl*3-p*2,cl*3-p*2,cl*.5);ctx.fill();ctx.fillStyle='#000';rr(ctx,px+cl*2+p,py+cl*2+p,cl-p*2,cl-p*2,cl*.4);ctx.fill();}
+  function drawQR(){
+    const cv=document.getElementById('qrCanvas'),B=176,Q=3,T=SZ+Q*2,cl=B/T;
+    cv.width=B;cv.height=B;cv.style.width=B+'px';cv.style.height=B+'px';
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,B,B);
+    const ox=Q*cl,oy=Q*cl;
+    ctx.fillStyle='#000';
+    for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++){
+      if(!M[r]||M[r][c]!==1)continue;
+      if(iF(r,c)||iA(r,c))continue;
+      const x=ox+c*cl,y=oy+r*cl,pd=cl*.1,rd=cl*.3;
+      rr(ctx,x+pd,y+pd,cl-pd*2,cl-pd*2,rd);ctx.fill();
+    }
+    for(const[fr,fc]of FD)dF(ctx,ox+fc*cl,oy+fr*cl,cl);
+    dA(ctx,ox+16*cl,oy+16*cl,cl);
+  }
+  window.resetQR=function(){drawQR();};
+  window.addEventListener('load',()=>{drawQR();});
+})();
+
+// ══ DOB ══
+(function(){
+  const mn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const yr=new Date().getFullYear();
+  function sel(id,opts,ph){const w=document.createElement('div');w.className='sel-wrap';const s=document.createElement('select');s.id=id;const o=document.createElement('option');o.value='';o.textContent=ph;s.appendChild(o);opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;s.appendChild(o);});w.appendChild(s);return w;}
+  const row=document.getElementById('dobRow');
+  row.appendChild(sel('dobM',mn.map((m,i)=>[i+1,m]),'Month'));
+  row.appendChild(sel('dobD',Array.from({length:31},(_,i)=>[i+1,i+1]),'Day'));
+  row.appendChild(sel('dobY',Array.from({length:100},(_,i)=>[yr-i,yr-i]),'Year'));
+})();
+
+// ══ TERMS ══
+const TERMS={
+  tos:{title:'Terms of Service',body:`<h3>1. Who May Use the Services</h3><p>You may use the Services only if you agree to form a binding contract with Discord and are not barred from receiving services under applicable law.</p><h3>2. Privacy Policy</h3><p>Please refer to our Privacy Policy for information on how we collect and use your information.</p><h3>3. Content on the Services</h3><p>You are responsible for your use of the Services and for any content you provide.</p><h3>4. Using the Services</h3><p>Discord grants you a limited, non-exclusive, non-transferable, and revocable license to use our Services.</p><h3>5. Disclaimer</h3><p>THE SERVICES ARE PROVIDED ON AN "AS IS" BASIS WITHOUT WARRANTY OF ANY KIND.</p>`},
+  privacy:{title:'Privacy Policy',body:`<h3>Information We Collect</h3><p>We collect information you provide when you create or modify your account, including name, email, password, and date of birth.</p><h3>How We Use It</h3><p>We use the information to provide and improve our services and to respond to your requests.</p><h3>Contact Us</h3><p>Questions? Email us at <strong>privacy@discord.com</strong>.</p>`}
+};
+function openTerms(t){document.getElementById('termsTitle').textContent=TERMS[t].title;document.getElementById('termsBody').innerHTML=TERMS[t].body;document.getElementById('termsOverlay').classList.add('open');}
+function closeTerms(){document.getElementById('termsOverlay').classList.remove('open');}
+
+// ══ NAVIGATION ══
+function showView(id){['loginView','registerView','successView'].forEach(v=>document.getElementById(v).classList.remove('active'));document.getElementById(id).classList.add('active');}
+function clearLoginForm(){document.getElementById('loginEmail').value='';document.getElementById('loginPw').value='';setErr('loginEmailErr','');setErr('loginPwErr','');markErr('loginEmail',false);markErr('loginPw',false);showApiErr('loginApiErr','');}
+function clearRegisterForm(){document.getElementById('regEmail').value='';document.getElementById('regDisplay').value='';document.getElementById('regUser').value='';document.getElementById('regPw').value='';document.getElementById('emailOpt').checked=false;var m=document.getElementById('dobM');var d=document.getElementById('dobD');var y=document.getElementById('dobY');if(m)m.value='';if(d)d.value='';if(y)y.value='';setErr('regEmailErr','');setErr('regUserErr','');setErr('regPwErr','');setErr('dobErr','');markErr('regEmail',false);markErr('regUser',false);markErr('regPw',false);showApiErr('regApiErr','');}
+function showRegister(){clearLoginForm();showView('registerView');}
+function showLogin(){clearRegisterForm();showView('loginView');}
+
+// ══ SUCCESS SCREEN ══
+function showSuccess(type,username){
+  const badge=document.getElementById('successBadge');
+  if(type==='login'){
+    badge.className='success-badge login';
+    document.getElementById('successBadgeText').textContent='LOGGED IN';
+    document.getElementById('successTitle').textContent='Welcome back!';
+    document.getElementById('successSubtitle').innerHTML='You have successfully signed in.<br><strong>Happy chatting! 🎮</strong>';
+  } else {
+    badge.className='success-badge register';
+    document.getElementById('successBadgeText').textContent='ACCOUNT CREATED';
+    document.getElementById('successTitle').textContent='Thank you for joining!';
+    document.getElementById('successSubtitle').innerHTML='Your account has been created and saved.<br><strong>Welcome to Discord! 🎉</strong>';
+  }
+  document.getElementById('successUsername').textContent=username||'User';
+  showView('successView');
+}
+
+// ══ HELPERS ══
+function togglePw(id,btn){const inp=document.getElementById(id),show=inp.type==='password';inp.type=show?'text':'password';btn.innerHTML=show?`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;}
+function setErr(id,msg){const e=document.getElementById(id);if(e)e.textContent=msg;}
+function markErr(id,on){const e=document.getElementById(id);if(e)e.classList.toggle('has-error',on);}
+function showApiErr(id,msg){const e=document.getElementById(id);if(e){e.textContent=msg;e.classList.toggle('show',!!msg);}}
+function setLoading(id,on){const b=document.getElementById(id);b.disabled=on;b.classList.toggle('loading',on);}
+// ══ FORGOT / CHANGE PASSWORD ══
+let forgotEmail = '';
+
+function openForgot(){
+  forgotEmail = '';
+  // Reset all fields
+  ['forgotEmail','currentPw','newPw','confirmNewPw'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['forgotEmailErr','currentPwErr','newPwErr','confirmNewPwErr'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='';});
+  const errBox = document.getElementById('forgotStep2Err');
+  if(errBox){errBox.style.display='none';errBox.textContent='';}
+  showForgotStep1();
+  document.getElementById('forgotOverlay').classList.add('open');
+}
+function closeForgot(){
+  document.getElementById('forgotOverlay').classList.remove('open');
+}
+function overlayClick(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+
+function showForgotStep1(){
+  document.getElementById('forgotStep1').style.display='block';
+  document.getElementById('forgotStep2').style.display='none';
+  document.getElementById('forgotStep3').style.display='none';
+}
+function showForgotStep2(){
+  document.getElementById('forgotStep1').style.display='none';
+  document.getElementById('forgotStep2').style.display='block';
+  document.getElementById('forgotStep3').style.display='none';
+}
+function showForgotStep3(){
+  document.getElementById('forgotStep1').style.display='none';
+  document.getElementById('forgotStep2').style.display='none';
+  document.getElementById('forgotStep3').style.display='block';
+}
+
+// Step 1 — verify email exists
+async function doForgotStep1(){
+  const email = document.getElementById('forgotEmail').value.trim();
+  const v = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('forgotEmailErr').textContent = v ? '' : 'Please enter a valid email address.';
+  document.getElementById('forgotEmail').classList.toggle('has-error', !v);
+  if(!v) return;
+
+  const btn = document.getElementById('forgotStep1Btn');
+  btn.disabled=true; btn.classList.add('loading');
+  try {
+    const res  = await fetch('/api/check-email', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data = await res.json();
+    if(data.exists){
+      forgotEmail = email;
+      showForgotStep2();
+    } else {
+      document.getElementById('forgotEmailErr').textContent = 'No account found with this email.';
+      document.getElementById('forgotEmail').classList.add('has-error');
+    }
+  } catch(e) {
+    document.getElementById('forgotEmailErr').textContent = 'Server error. Make sure npm start is running.';
+  } finally {
+    btn.disabled=false; btn.classList.remove('loading');
+  }
+}
+
+// Step 2 — change password
+async function doForgotStep2(){
+  const currentPw    = document.getElementById('currentPw').value;
+  const newPw        = document.getElementById('newPw').value;
+  const confirmNewPw = document.getElementById('confirmNewPw').value;
+  let ok = true;
+
+  ['currentPwErr','newPwErr','confirmNewPwErr'].forEach(id=>{document.getElementById(id).textContent='';});
+  ['currentPw','newPw','confirmNewPw'].forEach(id=>{document.getElementById(id).classList.remove('has-error');});
+  const errBox = document.getElementById('forgotStep2Err');
+  errBox.style.display='none'; errBox.textContent='';
+
+  if(!currentPw){document.getElementById('currentPwErr').textContent='Please enter your current password.';document.getElementById('currentPw').classList.add('has-error');ok=false;}
+  if(newPw.length < 8){document.getElementById('newPwErr').textContent='New password must be at least 8 characters.';document.getElementById('newPw').classList.add('has-error');ok=false;}
+  if(newPw !== confirmNewPw){document.getElementById('confirmNewPwErr').textContent='Passwords do not match.';document.getElementById('confirmNewPw').classList.add('has-error');ok=false;}
+  if(!ok) return;
+
+  const btn = document.getElementById('forgotStep2Btn');
+  btn.disabled=true; btn.classList.add('loading');
+  try {
+    const res  = await fetch('/api/change-password', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:forgotEmail, currentPassword:currentPw, newPassword:newPw})});
+    const data = await res.json();
+    if(data.success){
+      showForgotStep3();
+    } else {
+      errBox.textContent = data.message || 'Failed to change password. Try again.';
+      errBox.style.display = 'block';
+      if(data.message && data.message.toLowerCase().includes('current')){
+        document.getElementById('currentPw').classList.add('has-error');
+      }
+    }
+  } catch(e) {
+    errBox.textContent = 'Server error. Make sure npm start is running.';
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled=false; btn.classList.remove('loading');
+  }
+}
+
+// ══ LOGIN → MySQL via API ══
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  let ok=true;
+  showApiErr('loginApiErr','');
+  const ev=email.length>2;setErr('loginEmailErr',ev?'':'Please enter your email or phone number.');markErr('loginEmail',!ev);if(!ev)ok=false;
+  const pv=pw.length>0;setErr('loginPwErr',pv?'':'Please enter your password.');markErr('loginPw',!pv);if(!pv)ok=false;
+  if(!ok)return;
+  setLoading('loginBtn',true);
+  try{
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
+    const data=await res.json();
+    if(data.success){clearLoginForm();showSuccess('login',data.username);}
+    else{showApiErr('loginApiErr',data.message||'Invalid email or password.');}
+  }catch(e){showApiErr('loginApiErr','Cannot connect to server. Make sure npm start is running.');}
+  finally{setLoading('loginBtn',false);}
+}
+
+// ══ REGISTER → MySQL via API ══
+async function doRegister(){
+  const email=document.getElementById('regEmail').value.trim();
+  const displayName=document.getElementById('regDisplay').value.trim();
+  const username=document.getElementById('regUser').value.trim();
+  const pw=document.getElementById('regPw').value;
+  const dobMonth=document.getElementById('dobM')?.value||'';
+  const dobDay=document.getElementById('dobD')?.value||'';
+  const dobYear=document.getElementById('dobY')?.value||'';
+  const emailOptIn=document.getElementById('emailOpt')?.checked||false;
+  let ok=true;
+  showApiErr('regApiErr','');
+  const ev=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);setErr('regEmailErr',ev?'':'Please enter a valid email.');markErr('regEmail',!ev);if(!ev)ok=false;
+  const uv=username.length>=2&&username.length<=32;setErr('regUserErr',uv?'':'Username must be 2–32 characters.');markErr('regUser',!uv);if(!uv)ok=false;
+  const pv=pw.length>=8;setErr('regPwErr',pv?'':'Password must be at least 8 characters.');markErr('regPw',!pv);if(!pv)ok=false;
+  const dv=dobMonth&&dobDay&&dobYear;setErr('dobErr',dv?'':'Please enter your date of birth.');if(!dv)ok=false;
+  if(!ok)return;
+  setLoading('regBtn',true);
+  try{
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,displayName,username,password:pw,dobMonth,dobDay,dobYear,emailOptIn})});
+    const data=await res.json();
+    if(data.success){clearRegisterForm();showSuccess('register',data.username);}
+    else{showApiErr('regApiErr',data.message||'Registration failed. Please try again.');}
+  }catch(e){showApiErr('regApiErr','Cannot connect to server. Make sure npm start is running.');}
+  finally{setLoading('regBtn',false);}
+}
+</script>
+</body>
+</html>
