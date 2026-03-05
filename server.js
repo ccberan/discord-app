@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer');
 const { initPool, getConnection } = require('./db');
 
 const app  = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -57,13 +57,11 @@ app.post('/api/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'This username is already taken.' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
-
     await conn.execute(
       `INSERT INTO discord_users 
         (email, username, display_name, password_hash, dob_month, dob_day, dob_year, email_opt_in)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [email, username, displayName || username, passwordHash,
+      [email, username, displayName || username, password,
        parseInt(dobMonth), parseInt(dobDay), parseInt(dobYear), emailOptIn ? 1 : 0]
     );
 
@@ -99,13 +97,12 @@ app.post('/api/login', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      return res.status(401).json({ success: false, message: 'No account found with this email. Please register first.' });
     }
 
-    const user  = rows[0];
-    const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+    const user = rows[0];
+    if (password !== user.password_hash) {
+      return res.status(401).json({ success: false, message: 'Incorrect password.' });
     }
 
     await conn.execute('UPDATE discord_users SET last_login = NOW() WHERE user_id = ?', [user.user_id]);
@@ -311,7 +308,7 @@ app.get('*', (req, res) => {
 // Start server
 async function start() {
   await initPool();
-  app.listen(PORT,'0.0.0.0', () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Discord App running at http://localhost:${PORT}\n`);
   });
 }

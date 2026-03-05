@@ -167,12 +167,31 @@ html,body{height:100%;font-family:'gg sans','Noto Sans',Whitney,'Helvetica Neue'
 .terms-modal-footer button:hover{background:var(--blurple-hover);}
 
 @media(max-width:820px){
-  .auth-card{width:calc(100vw - 32px);flex-direction:column;}
-  .qr-side{width:100%;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);}
+  html,body{overflow-y:auto;}
+  .page-bg{align-items:flex-start;padding:16px 0 32px;}
+  .auth-card{width:calc(100vw - 32px);flex-direction:column;min-height:unset;}
+  .qr-side{width:100%;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);padding:28px 20px;}
+  .qr-side h2{font-size:17px;}
   .auth-card.reg-mode,.success-card{width:calc(100vw - 32px);}
-  .success-card{padding:36px 28px;}
-  .forgot-modal,.terms-modal{width:calc(100vw - 32px);padding:24px;}
-  .orb{right:-140px;width:240px;height:240px;}
+  .success-card{padding:28px 20px;}
+  .form-side{padding:24px 20px 20px;}
+  .form-header h1{font-size:20px;}
+  .forgot-modal{width:calc(100vw - 32px);padding:24px;max-height:90vh;overflow-y:auto;}
+  .terms-modal{width:calc(100vw - 32px);padding:0;max-height:85vh;}
+  .orb{display:none;}
+  .site-logo{top:16px;left:16px;}
+  .dob-row{flex-direction:column;gap:8px;}
+  .dob-row .sel-wrap{width:100%;}
+  .btn-row{flex-direction:column;}
+  .btn-back{order:2;}
+  .btn-send{order:1;}
+}
+@media(max-width:480px){
+  .page-bg{padding:12px 0 24px;}
+  .auth-card{width:calc(100vw - 24px);border-radius:8px;}
+  .form-side{padding:20px 16px 16px;}
+  .qr-side{padding:20px 16px;}
+  .field input,.field select{font-size:16px;}
 }
 </style>
 </head>
